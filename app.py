@@ -45,16 +45,9 @@ st.markdown("""
     animation: slideFade 1.2s ease;
 }
 
-/* Slide animation */
 @keyframes slideFade {
-    from {
-        opacity: 0;
-        transform: translateY(40px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from {opacity: 0; transform: translateY(40px);}
+    to {opacity: 1; transform: translateY(0);}
 }
 
 /* Header */
@@ -149,7 +142,9 @@ else:
     st.markdown('<div class="header">Face Recognition Attendance Dashboard</div>', unsafe_allow_html=True)
     st.write("")
 
-    date = datetime.now().strftime("%d-%m-%Y")
+    # -------- DATE SELECTOR --------
+    selected_date = st.date_input("📅 Select Attendance Date", datetime.today())
+    date = selected_date.strftime("%d-%m-%Y")
     file_path = f"Attendance/Attendance_{date}.csv"
 
     # -------- DASHBOARD PAGE --------
@@ -165,7 +160,7 @@ else:
             col2.markdown(f'<div class="card">📚 Subjects<br><div class="metric">{df["SUBJECT"].nunique()}</div></div>', unsafe_allow_html=True)
             col3.markdown(f'<div class="card">📅 Date<br><div class="metric">{date}</div></div>', unsafe_allow_html=True)
         else:
-            st.warning("No attendance data available today")
+            st.warning("⚠ No attendance data available for selected date")
 
     # -------- RECORDS PAGE --------
     elif page == "Attendance Records":
@@ -191,27 +186,26 @@ else:
                 mime="text/csv"
             )
         else:
-            st.warning("No attendance found for today")
+            st.warning("⚠ No attendance found for selected date")
 
     # -------- ABOUT PAGE --------
     else:
         st.subheader("ℹ️ About Project")
         st.markdown("""
-        **Face Recognition Attendance System**  
+        **Face Recognition Attendance System**
 
-        This project automates attendance using **Computer Vision** and **Machine Learning**.
-        It detects and recognizes faces in real time and stores attendance digitally.
+        An AI-powered system that automates attendance using
+        computer vision and machine learning.
 
-        **Key Features:**
-        - AI-based face recognition  
-        - Secure login system  
-        - Subject-wise attendance  
-        - Duplicate prevention  
-        - Cloud-deployed dashboard  
+        **Features**
+        - Face recognition using OpenCV & KNN
+        - Secure login system
+        - Subject-wise attendance
+        - Duplicate prevention
+        - Cloud-based dashboard
 
-        **Tech Stack:**  
-        Python, OpenCV, Machine Learning (KNN), Streamlit
+        **Tech Stack**
+        Python, OpenCV, Machine Learning, Streamlit
         """)
 
     st.markdown('<div class="footer">© 2026 | WEB-O-THON 2.0 | Team Project</div>', unsafe_allow_html=True)
-
