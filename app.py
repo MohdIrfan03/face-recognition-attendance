@@ -10,7 +10,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# ---------------- SESSION STATE ----------------
+# ---------------- SESSION ----------------
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
@@ -18,98 +18,164 @@ if "logged_in" not in st.session_state:
 USERNAME = "admin"
 PASSWORD = "admin123"
 
-# ---------------- CUSTOM CSS ----------------
+# ---------------- GLOBAL CSS ----------------
 st.markdown("""
 <style>
-body {
-    background-color: #f5f7fb;
+
+/* Animated gradient background */
+.stApp {
+    background: linear-gradient(-45deg, #667eea, #764ba2, #ff758c, #ff7eb3);
+    background-size: 400% 400%;
+    animation: gradientBG 12s ease infinite;
 }
-.login-card {
-    background: white;
-    padding: 35px;
-    border-radius: 18px;
-    box-shadow: 0px 6px 18px rgba(0,0,0,0.1);
-    width: 400px;
-    margin: auto;
-    margin-top: 120px;
+
+@keyframes gradientBG {
+    0% {background-position: 0% 50%;}
+    50% {background-position: 100% 50%;}
+    100% {background-position: 0% 50%;}
 }
-.title {
-    background: linear-gradient(90deg, #ff416c, #ff4b2b);
+
+/* Glass card */
+.card {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(15px);
+    padding: 25px;
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    animation: slideFade 1.2s ease;
+}
+
+/* Slide animation */
+@keyframes slideFade {
+    from {
+        opacity: 0;
+        transform: translateY(40px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Header */
+.header {
+    background: linear-gradient(90deg, #6a11cb, #2575fc);
     padding: 25px;
     border-radius: 15px;
     color: white;
-    text-align: center;
-    font-size: 38px;
+    font-size: 34px;
     font-weight: bold;
+    text-align: center;
 }
-.card {
-    background-color: white;
-    padding: 20px;
-    border-radius: 15px;
-    box-shadow: 0px 4px 12px rgba(0,0,0,0.08);
+
+/* Title glow */
+.title {
+    text-align: center;
+    font-size: 30px;
+    font-weight: bold;
+    color: white;
+    animation: glow 2s infinite alternate;
 }
+
+@keyframes glow {
+    from { text-shadow: 0 0 10px #fff; }
+    to { text-shadow: 0 0 20px #ffdee9; }
+}
+
+.subtitle {
+    text-align: center;
+    color: #eee;
+    font-size: 14px;
+    margin-bottom: 25px;
+}
+
 .footer {
     text-align: center;
-    color: gray;
+    color: #eee;
+    margin-top: 40px;
     font-size: 14px;
-    margin-top: 30px;
 }
+
+.metric {
+    font-size: 30px;
+    font-weight: bold;
+    color: white;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
 # ================= LOGIN PAGE =================
 if not st.session_state.logged_in:
 
+    st.markdown("<br><br><br>", unsafe_allow_html=True)
+
     st.markdown("""
-    <div class="login-card">
-        <h2 style="text-align:center;">🔐 Login</h2>
-        <p style="text-align:center; color:gray;">
-        Face Recognition Attendance System
-        </p>
-    </div>
+    <div style="display:flex; justify-content:center;">
+        <div class="card" style="width:400px;">
+            <div class="title">🎓 Smart Attendance</div>
+            <div class="subtitle">
+                Face Recognition Based Attendance System
+            </div>
     """, unsafe_allow_html=True)
 
     username = st.text_input("Username")
     password = st.text_input("Password", type="password")
 
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        login_btn = st.button("Login", use_container_width=True)
-
-    if login_btn:
+    if st.button("Login", use_container_width=True):
         if username == USERNAME and password == PASSWORD:
             st.session_state.logged_in = True
-            st.success("Login successful ✅")
+            st.success("Login successful")
             st.rerun()
         else:
-            st.error("Invalid username or password ❌")
+            st.error("Invalid username or password")
+
+    st.markdown("</div></div>", unsafe_allow_html=True)
 
 # ================= MAIN DASHBOARD =================
 else:
-    st.markdown('<div class="title">🎓 Face Recognition Attendance Dashboard</div>', unsafe_allow_html=True)
-    st.write("")
-
-    # Logout button
-    col1, col2 = st.columns([6, 1])
-    with col2:
+    # -------- SIDEBAR --------
+    with st.sidebar:
+        st.title("🎓 Navigation")
+        page = st.radio(
+            "Go to",
+            ["Dashboard", "Attendance Records", "About Project"]
+        )
         if st.button("Logout"):
             st.session_state.logged_in = False
             st.rerun()
 
+    # -------- HEADER --------
+    st.markdown('<div class="header">Face Recognition Attendance Dashboard</div>', unsafe_allow_html=True)
+    st.write("")
+
     date = datetime.now().strftime("%d-%m-%Y")
     file_path = f"Attendance/Attendance_{date}.csv"
 
-    col1, col2 = st.columns([3, 1])
+    # -------- DASHBOARD PAGE --------
+    if page == "Dashboard":
+        st.subheader("📊 Overview")
 
-    with col1:
-        st.markdown('<div class="card">', unsafe_allow_html=True)
-        st.subheader(f"📅 Attendance — {date}")
+        col1, col2, col3 = st.columns(3)
+
+        if os.path.exists(file_path):
+            df = pd.read_csv(file_path)
+
+            col1.markdown(f'<div class="card">👥 Total Students<br><div class="metric">{len(df)}</div></div>', unsafe_allow_html=True)
+            col2.markdown(f'<div class="card">📚 Subjects<br><div class="metric">{df["SUBJECT"].nunique()}</div></div>', unsafe_allow_html=True)
+            col3.markdown(f'<div class="card">📅 Date<br><div class="metric">{date}</div></div>', unsafe_allow_html=True)
+        else:
+            st.warning("No attendance data available today")
+
+    # -------- RECORDS PAGE --------
+    elif page == "Attendance Records":
+        st.subheader("📁 Attendance Records")
 
         if os.path.exists(file_path):
             df = pd.read_csv(file_path)
 
             subject = st.selectbox(
-                "📘 Filter by Subject",
+                "Filter by Subject",
                 ["All"] + list(df["SUBJECT"].unique())
             )
 
@@ -119,30 +185,33 @@ else:
             st.dataframe(df, use_container_width=True)
 
             st.download_button(
-                "⬇ Download CSV",
-                data=df.to_csv(index=False),
+                "⬇ Download Attendance CSV",
+                df.to_csv(index=False),
                 file_name=f"Attendance_{date}.csv",
                 mime="text/csv"
             )
         else:
-            st.warning("⚠ No attendance recorded today")
+            st.warning("No attendance found for today")
 
-        st.markdown('</div>', unsafe_allow_html=True)
+    # -------- ABOUT PAGE --------
+    else:
+        st.subheader("ℹ️ About Project")
+        st.markdown("""
+        **Face Recognition Attendance System**  
 
-    with col2:
-        st.markdown('<div class="card">', unsafe_allow_html=True)
-        st.subheader("📊 Summary")
+        This project automates attendance using **Computer Vision** and **Machine Learning**.
+        It detects and recognizes faces in real time and stores attendance digitally.
 
-        if os.path.exists(file_path):
-            st.metric("👥 Total Students", len(df))
-            st.metric("📚 Subjects", df["SUBJECT"].nunique())
-        else:
-            st.metric("👥 Total Students", 0)
-            st.metric("📚 Subjects", 0)
+        **Key Features:**
+        - AI-based face recognition  
+        - Secure login system  
+        - Subject-wise attendance  
+        - Duplicate prevention  
+        - Cloud-deployed dashboard  
 
-        st.markdown('</div>', unsafe_allow_html=True)
+        **Tech Stack:**  
+        Python, OpenCV, Machine Learning (KNN), Streamlit
+        """)
 
-    st.markdown(
-        '<div class="footer">© 2026 | Face Recognition Attendance System</div>',
-        unsafe_allow_html=True
-    )
+    st.markdown('<div class="footer">© 2026 | WEB-O-THON 2.0 | Team Project</div>', unsafe_allow_html=True)
+
